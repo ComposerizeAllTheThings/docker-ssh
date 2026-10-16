@@ -15,7 +15,7 @@ ENV ALLOWED_IPS="AllowUsers tunnel" \
     SSH_USER="tunnel" \
     SSH_GATEWAYPORTS="no"
 
-ARG PACKAGE_DEPENDENCIES="openssh-server,iputils-ping,locales,tini" \
+ARG PACKAGE_DEPENDENCIES="openssh-server,iputils-ping,locales,rsync,tini" \
     REPOSITORY_BUILD_VERSION="dev"
 
 COPY --chown=root:root --chmod=755 src/rootfs /

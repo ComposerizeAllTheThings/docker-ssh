@@ -14,6 +14,7 @@
 
 ## Features
 - 🐧 **Debian-based** - Get a lightweight experience, while still having Bash
+- 📂 **`rsync` included** - Easily back up or sync data from your Docker volumes over SSH
 - 🤝 **Key-based auth via ENV** - Grant access with the `AUTHORIZED_KEYS` environment variable
 - ⛔️ **Block IPs via ENV** - Block access with the `ALLOWED_IPS` environment variable
 - 🔒 **Unprivileged user** - All SSH connections are made as an unprivileged user
@@ -143,6 +144,41 @@ networks:
   database:
 ```
 
+# Working example: Backing up a Docker volume with `rsync`
+Because `rsync` is included in the image, you can mount any Docker volume into the SSH container and pull the data down to your local machine (or push it back up) over a secure SSH tunnel.
+
+### 1. Mount the volume you want to back up
+Attach the volume to a path the SSH user can read. In this example we mount the `app_data` volume to `/data` inside the container as read-only:
+
+```yaml
+services:
+  ssh:
+    image: serversideup/docker-ssh
+    ports:
+      - target: 2222
+        published: 2222
+        mode: host
+    environment:
+      AUTHORIZED_KEYS: >
+        "ssh-ed25519 1234567890abcdefghijklmnoqrstuvwxyz user-a"
+      ALLOWED_IPS: "AllowUsers tunnel@1.2.3.4"
+    volumes:
+      - app_data:/data:ro
+
+volumes:
+  app_data:
+    external: true
+```
+
+### 2. Pull the data down with `rsync`
+From your local machine, use `rsync` over SSH to copy the contents of the volume to a local directory:
+
+```sh
+rsync -avz -e "ssh -p 12345" tunnel@myserver.test:/data/ ./app_data-backup/
+```
+
+> ℹ️ **NOTE:** Drop the `:ro` flag on the volume mount if you also need to push data **back into** the volume.
+
 ## Resources
 - **[DockerHub](https://hub.docker.com/r/serversideup/ansible)** to browse the images.
 - **[Discord](https://serversideup.net/discord)** for friendly support from the community and the team.
@@ -162,30 +198,45 @@ Need help getting started? Join our Discord community and we'll help you out!
 
 <a href="https://serversideup.net/discord"><img src="https://serversideup.net/wp-content/themes/serversideup/images/open-source/join-discord.svg" title="Join Discord"></a>
 
+<!-- serversideup-sponsors -->
 ## Our Sponsors
-All of our software is free an open to the world. None of this can be brought to you without the financial backing of our sponsors.
+All of our software is free and open to the world. None of this can be brought to you without the financial backing of our sponsors.
 
-<p align="center"><a href="https://github.com/sponsors/serversideup"><img src="https://521public.s3.amazonaws.com/serversideup/sponsors/sponsor-box.png" alt="Sponsors"></a></p>
+<p align="center"><a href="https://github.com/sponsors/serversideup"><img src="https://521public.s3.amazonaws.com/serversideup/sponsors/sponsor-box.png" alt="Become a sponsor"></a></p>
 
-### Black Level Sponsors
-<a href="https://sevalla.com"><img src="https://serversideup.net/wp-content/uploads/2024/10/sponsor-image.png" alt="Sevalla" width="546px"></a>
+### Platinum Sponsors
+<a href="https://sevalla.com"><img src="https://serversideup.net/sponsors/sevalla.png" alt="Sevalla" width="500px"></a>
 
-#### Bronze Sponsors
-<!-- bronze -->No bronze sponsors yet. <a href="https://github.com/sponsors/serversideup">Become a sponsor →</a><!-- bronze -->
+### Silver Sponsors
+<a href="https://giga-infosystems.com"><img src="https://serversideup.net/sponsors/giga-infosystems.png" alt="GiGa infosystems" width="200px"></a>
 
-#### Individual Supporters
-<!-- supporters --><a href="https://github.com/aagjalpankaj"><img src="https://github.com/aagjalpankaj.png" width="40px" alt="aagjalpankaj" /></a>&nbsp;&nbsp;<!-- supporters -->
+### Infrastructure Sponsors
+These companies give us free access to the tools and infrastructure we use to build, test, and ship our open source projects. Their support helps our entire community.
 
+<a href="https://depot.dev"><img src="https://serversideup.net/sponsors/depot.png" alt="Depot" width="250px"></a>&nbsp;&nbsp;<a href="https://hub.docker.com/u/serversideup"><img src="https://serversideup.net/sponsors/docker.png" alt="Docker" width="250px"></a>
+<!-- serversideup-sponsors -->
+
+<!-- serversideup-about -->
 ## About Us
-We're [Dan](https://twitter.com/danpastori) and [Jay](https://twitter.com/jaydrogers) - a two person team with a passion for open source products. We created [Server Side Up](https://serversideup.net) to help share what we learn.
+We're [Dan](https://x.com/danpastori) and [Jay](https://x.com/jaydrogers) - a two-person team with a passion for open source products. We created [Server Side Up](https://serversideup.net) to help share what we learn.
 
 <div align="center">
 
-| <div align="center">Dan Pastori</div>                  | <div align="center">Jay Rogers</div>                                 |
-| ----------------------------- | ------------------------------------------ |
-| <div align="center"><a href="https://twitter.com/danpastori"><img src="https://serversideup.net/wp-content/uploads/2023/08/dan.jpg" title="Dan Pastori" width="150px"></a><br /><a href="https://twitter.com/danpastori"><img src="https://serversideup.net/wp-content/themes/serversideup/images/open-source/twitter.svg" title="Twitter" width="24px"></a><a href="https://github.com/danpastori"><img src="https://serversideup.net/wp-content/themes/serversideup/images/open-source/github.svg" title="GitHub" width="24px"></a></div>                        | <div align="center"><a href="https://twitter.com/jaydrogers"><img src="https://serversideup.net/wp-content/uploads/2023/08/jay.jpg" title="Jay Rogers" width="150px"></a><br /><a href="https://twitter.com/jaydrogers"><img src="https://serversideup.net/wp-content/themes/serversideup/images/open-source/twitter.svg" title="Twitter" width="24px"></a><a href="https://github.com/jaydrogers"><img src="https://serversideup.net/wp-content/themes/serversideup/images/open-source/github.svg" title="GitHub" width="24px"></a></div>                                       |
+| <div align="center">Dan Pastori</div> | <div align="center">Jay Rogers</div> |
+| --- | --- |
+| <div align="center"><a href="https://x.com/danpastori"><img src="https://serversideup.net/wp-content/uploads/2023/08/dan.jpg" title="Dan Pastori" width="150px"></a><br /><a href="https://x.com/danpastori"><img src="https://serversideup.net/logos/x.svg" title="X" width="24px"></a><a href="https://github.com/danpastori"><img src="https://serversideup.net/logos/github.svg" title="GitHub" width="24px"></a></div> | <div align="center"><a href="https://x.com/jaydrogers"><img src="https://serversideup.net/wp-content/uploads/2023/08/jay.jpg" title="Jay Rogers" width="150px"></a><br /><a href="https://x.com/jaydrogers"><img src="https://serversideup.net/logos/x.svg" title="X" width="24px"></a><a href="https://github.com/jaydrogers"><img src="https://serversideup.net/logos/github.svg" title="GitHub" width="24px"></a></div> |
 
 </div>
+
+### Hire Us
+Get two senior Laravel experts who deliver quality code with predictable monthly pricing. [Dan](https://x.com/danpastori) and [Jay](https://x.com/jaydrogers) have 30+ years of combined experience building scalable Laravel applications.
+
+- **🎯 Complete Laravel expertise** - Full-stack development, CI/CD, database optimization, mobile apps
+- **💰 Predictable pricing** - Fixed monthly subscription, no hourly billing surprises, 40%+ savings
+- **⚡ Maximum productivity** - 90%+ development time, no meetings, results in days not weeks
+- **🛡️ Risk-free** - 7-day money-back guarantee, cancel anytime
+
+**[💬 Discuss Your Project →](https://serversideup.net/hire-us)**
 
 ### Find us at:
 
@@ -194,21 +245,25 @@ We're [Dan](https://twitter.com/danpastori) and [Jay](https://twitter.com/jaydro
 * **🤵‍♂️ [Get Professional Help](https://serversideup.net/professional-support)** - Get video + screen-sharing support from the core contributors.
 * **💻 [GitHub](https://github.com/serversideup)** - Check out our other open source projects.
 * **📫 [Newsletter](https://serversideup.net/subscribe)** - Skip the algorithms and get quality content right to your inbox.
-* **🐥 [Twitter](https://twitter.com/serversideup)** - You can also follow [Dan](https://twitter.com/danpastori) and [Jay](https://twitter.com/jaydrogers).
+* **🐥 [X (Twitter)](https://x.com/serversideup)** - You can also follow [Dan](https://x.com/danpastori) and [Jay](https://x.com/jaydrogers).
 * **❤️ [Sponsor Us](https://github.com/sponsors/serversideup)** - Please consider sponsoring us so we can create more helpful resources.
 
-## Our products
+## Our Products
 If you appreciate this project, be sure to check out our other projects.
 
-### 📚 Books
-- **[The Ultimate Guide to Building APIs & SPAs](https://serversideup.net/ultimate-guide-to-building-apis-and-spas-with-laravel-and-nuxt3/)**: Build web & mobile apps from the same codebase.
-- **[Building Multi-Platform Browser Extensions](https://serversideup.net/building-multi-platform-browser-extensions/)**: Ship extensions to all browsers from the same codebase.
-
-### 🛠️ Software-as-a-Service
-- **[Bugflow](https://bugflow.io/)**: Get visual bug reports directly in GitHub, GitLab, and more.
-- **[SelfHost Pro](https://selfhostpro.com/)**: Connect Stripe or Lemonsqueezy to a private docker registry for self-hosted apps.
+### 🛠️ Premium
+- **[Self-Host Pro](https://selfhostpro.com)**: Sell self-hosted software in minutes.
+- **[Spin Pro](https://getspin.pro)**: Production-ready Docker templates for shipping quickly.
 
 ### 🌍 Open Source
-- **[AmplitudeJS](https://521dimensions.com/open-source/amplitudejs)**: Open-source HTML5 & JavaScript Web Audio Library.
-- **[Spin](https://serversideup.net/open-source/spin/)**: Laravel Sail alternative for running Docker from development → production.
-- **[Financial Freedom](https://github.com/serversideup/financial-freedom)**: Open source alternative to Mint, YNAB, & Monarch Money.
+- **[serversideup/php](https://serversideup.net/open-source/docker-php/)**: Supercharged PHP Docker images, based off the official PHP images. <!-- repo:serversideup/docker-php -->
+- **[Spin](https://serversideup.net/open-source/spin/)**: Docker Simplified. Deploy Anywhere. Zero Downtime. Any OS. <!-- repo:serversideup/spin -->
+- **[Financial Freedom](https://serversideup.net/open-source/financial-freedom/)**: Open source alternative to Mint, YNAB, and more. <!-- repo:serversideup/financial-freedom -->
+- **[AmplitudeJS](https://serversideup.net/open-source/amplitudejs/)**: Customize the design of any element of the HTML5 Audio Player. <!-- repo:521dimensions/amplitudejs -->
+- **[webext-bridge](https://serversideup.net/open-source/webext-bridge/)**: Messaging in Web Extensions made easy. Batteries included. <!-- repo:serversideup/webext-bridge -->
+- **[serversideup/ansible](https://github.com/serversideup/docker-ansible)**: Run Ansible anywhere with a lightweight and powerful Docker image. <!-- repo:serversideup/docker-ansible -->
+
+### 📚 Books
+- **[Building Browser Extensions](https://serversideup.net/products/building-multi-platform-browser-extensions/)**: Build browser extensions for Firefox, Chrome, and more.
+- **[Ultimate Guide To Building APIs & SPAs](https://serversideup.net/products/ultimate-guide-to-building-apis-and-spas-with-laravel-and-nuxt3/)**: Build web and mobile apps from the same codebase.
+<!-- serversideup-about -->
